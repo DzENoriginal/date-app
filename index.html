@@ -15,7 +15,9 @@
             align-items: center;
             background: linear-gradient(145deg, #fce4ec, #f8bbd0);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: manipulation; /* Убираем задержку на тач-устройствах */
+            touch-action: manipulation;
+            overflow: hidden;
+            position: relative;
         }
 
         /* Контейнер-открытка */
@@ -31,6 +33,7 @@
             border: 2px solid rgba(255, 255, 255, 0.5);
             transition: 0.3s;
             position: relative;
+            z-index: 10;
         }
 
         h1 {
@@ -89,7 +92,7 @@
             box-shadow: 0 2px 0 #880e4f;
         }
 
-        /* Кнопка НЕТ — она будет "убегать" */
+        /* Кнопка НЕТ — будет "убегать" */
         .btn-no {
             background: #78909c;
             color: white;
@@ -112,22 +115,22 @@
             position: fixed;
             font-size: 40px;
             pointer-events: none;
-            animation: floatUp 1.8s ease-out forwards;
+            animation: floatUp 2s ease-out forwards;
             z-index: 999;
         }
 
         @keyframes floatUp {
             0% {
                 opacity: 1;
-                transform: translateY(0) scale(1) rotate(0deg);
+                transform: translateY(0) scale(0.3) rotate(0deg);
             }
             100% {
                 opacity: 0;
-                transform: translateY(-400px) scale(1.5) rotate(40deg);
+                transform: translateY(-500px) scale(1.8) rotate(50deg);
             }
         }
 
-        /* Сообщение после согласия */
+        /* Сообщение после согласия — всегда скрыто, пока не нажмут */
         .hidden-message {
             display: none;
             margin-top: 20px;
@@ -138,6 +141,10 @@
             border-radius: 30px;
             border: 2px dashed #d81b60;
             animation: pop 0.5s ease;
+        }
+
+        .hidden-message.show {
+            display: block;
         }
 
         .hidden-message a {
@@ -178,12 +185,11 @@
 
     <!-- Скрытый блок, который появится после ДА -->
     <div class="hidden-message" id="successMessage">
-        🥳 <strong>Я знал(а)!</strong> 🥳<br><br>
-        Ты — самая лучшая! ❤️<br>
-        <span style="font-size: 18px;">Тогда жду тебя <br> <strong>завтра в 19:00</strong> у ТЦ "Европа" 😉</span><br><br>
-        📍 <a href="https://maps.app.goo.gl/пример_ссылки" target="_blank">Открыть карту</a>
-        <!-- ↑ Замени ссылку на реальную, если нужно -->
-    </div>
+        😊 <strong>Я знал!</strong> 😄<br><br>
+        Ты - лучшая! ❤️<br>
+        <span style="font-size: 18px;">Тогда я приеду за тобой <br> <strong>в среду в 18:00</strong> 😉</span><br><br>
+        📍 <a href="https://yandex.ru/maps/-/CTdZ7OLH" target="_blank">Узнать куда поедем</a>
+    </div>  
 </div>
 
 <script>
@@ -191,121 +197,150 @@
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const successMsg = document.getElementById('successMessage');
-        const card = document.getElementById('card');
         const container = document.getElementById('buttonContainer');
 
-        // --- 1. Функция для "убегания" кнопки "НЕТ" ---
-        function moveNoButton() {
-            // Получаем размеры контейнера с кнопками
-            const containerRect = container.getBoundingClientRect();
-            const btnRect = noBtn.getBoundingClientRect();
+        // Флаг: показывали ли уже сообщение
+        let isMessageShown = false;
 
-            // Ширина/высота кнопки
-            const btnW = btnRect.width;
-            const btnH = btnRect.height;
+        // --- 1. Функция для "убегания" кнопки "НЕТ" по ВСЕМУ ЭКРАНУ ---
+        function moveNoButton(e) {
+            if (e) e.preventDefault();
 
-            // Доступное пространство внутри контейнера (с отступами, чтобы не вылезало)
-            const pad = 10;
-            const maxX = containerRect.width - btnW - pad;
-            const maxY = containerRect.height - btnH - pad;
+            // Если кнопка скрыта — не двигаем
+            if (noBtn.style.display === 'none') return;
 
-            // Генерируем случайные координаты (но не дальше чем позволяет контейнер)
+            // Размеры кнопки
+            const btnW = noBtn.offsetWidth || 110;
+            const btnH = noBtn.offsetHeight || 60;
+
+            const padding = 15;
+            const maxX = window.innerWidth - btnW - padding;
+            const maxY = window.innerHeight - btnH - padding;
+
+            // Случайные координаты
             let randomX = Math.random() * maxX;
             let randomY = Math.random() * maxY;
 
-            // Доп. проверка: если кнопка уплыла слишком далеко, возвращаем в пределы
-            randomX = Math.min(Math.max(randomX, pad), maxX);
-            randomY = Math.min(Math.max(randomY, pad), maxY);
+            randomX = Math.min(Math.max(randomX, padding), maxX);
+            randomY = Math.min(Math.max(randomY, padding), maxY);
 
-            // Применяем transform (чтобы не ломать поток документа)
-            noBtn.style.position = 'absolute';
+            // Перемещаем кнопку в body с fixed-позиционированием
+            if (!noBtn.classList.contains('flying')) {
+                noBtn.classList.add('flying');
+                noBtn.style.position = 'fixed';
+                noBtn.style.zIndex = '1000';
+                noBtn.style.animation = 'none';
+                noBtn.style.opacity = '1';
+                document.body.appendChild(noBtn);
+            }
+
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
-            noBtn.style.transform = 'scale(0.9)'; // чуть уменьшаем, чтобы было забавно
-            noBtn.style.zIndex = '20';
+
+            // Эффект "испуга"
+            const rotation = (Math.random() - 0.5) * 20;
+            noBtn.style.transform = `scale(0.85) rotate(${rotation}deg)`;
+            noBtn.style.transition = 'left 0.15s ease-out, top 0.15s ease-out, transform 0.15s ease-out';
+
+            setTimeout(() => {
+                if (noBtn.style.display !== 'none') {
+                    noBtn.style.transform = 'scale(1) rotate(0deg)';
+                }
+            }, 200);
         }
 
         // --- 2. Обработчики для кнопки "НЕТ" ---
-        // Наведение мышкой (десктоп)
         noBtn.addEventListener('mouseenter', moveNoButton);
-        // Касание на телефоне (touch)
         noBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // предотвращаем "прилипание"
-            moveNoButton();
+            e.preventDefault();
+            moveNoButton(e);
         });
-        // Если вдруг нажали (на случай если поймали) — всё равно убегаем
         noBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            moveNoButton();
+            moveNoButton(e);
         });
 
-        // --- 3. Кнопка "ДА" — радость и сердечки ---
-        yesBtn.addEventListener('click', function(e) {
-            // Показываем скрытое сообщение
-            successMsg.style.display = 'block';
-
-            // Меняем текст на кнопке ДА (чтоб не нажимали повторно)
-            yesBtn.textContent = '💕 Я счастлив(а)!';
-            yesBtn.disabled = true;
-            yesBtn.style.opacity = '0.7';
-
-            // Прячем кнопку "НЕТ" (она больше не нужна)
-            noBtn.style.display = 'none';
-
-            // Запускаем фейерверк сердечек (20 штук)
-            for (let i = 0; i < 30; i++) {
-                setTimeout(() => createHeart(), i * 70);
-            }
-
-            // Прокручиваем к сообщению (если надо)
-            successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-
-        // --- 4. Функция создания сердечка ---
+        // --- 3. Функция создания сердечка ---
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
-            heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '✨', '🌸'][Math.floor(Math.random() * 7)];
-            heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.top = Math.random() * 40 + 10 + 'vh';
-            heart.style.fontSize = (Math.random() * 30 + 30) + 'px';
-            heart.style.animationDuration = (Math.random() * 1.5 + 1.2) + 's';
+
+            const emojis = ['❤️', '💖', '💗', '💕', '♥️', '✨', '🌸', '🌺', '💝', '💘', '🌹', '🥰', '😍'];
+            heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+            heart.style.left = (Math.random() * 90 + 5) + '%';
+            heart.style.top = (Math.random() * 40 + 50) + '%';
+            heart.style.fontSize = (Math.random() * 35 + 25) + 'px';
+            heart.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+
             document.body.appendChild(heart);
 
-            // Удаляем сердечко после анимации
             setTimeout(() => {
-                heart.remove();
-            }, 3000);
+                if (heart.parentNode) {
+                    heart.remove();
+                }
+            }, 3500);
         }
 
-        // --- 5. Защита от дурака: если вдруг кнопка НЕТ за пределами, возвращаем ---
-        // Проверяем каждые 2 секунды (на случай ресайза окна)
-        setInterval(() => {
-            if (noBtn.style.position === 'absolute') {
-                const containerRect = container.getBoundingClientRect();
-                const btnRect = noBtn.getBoundingClientRect();
-                // Если кнопка вылезла за пределы (например, при повороте экрана) — возвращаем
-                if (btnRect.left < containerRect.left || btnRect.top < containerRect.top ||
-                    btnRect.right > containerRect.right || btnRect.bottom > containerRect.bottom) {
-                    // Сбрасываем позицию в центр
-                    noBtn.style.position = 'relative';
-                    noBtn.style.left = 'auto';
-                    noBtn.style.top = 'auto';
-                    noBtn.style.transform = 'scale(1)';
-                }
+        function launchHearts(count, delay) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(createHeart, i * delay);
             }
-        }, 2000);
+        }
 
-        // Если пользователь ресайзит окно — тоже корректируем
+        // --- 4. Кнопка "ДА" — показывает сообщение ОДИН РАЗ и запускает сердечки ---
+        yesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Если сообщение ещё не показано — показываем
+            if (!isMessageShown) {
+                successMsg.style.display = 'block';
+                successMsg.classList.add('show');
+                isMessageShown = true;
+
+                // Меняем кнопку
+                yesBtn.textContent = '😊 Я счастлив! 😄';
+                yesBtn.style.opacity = '0.7';
+                
+                // Прячем кнопку "НЕТ"
+                noBtn.style.display = 'none';
+
+                // Прокручиваем к сообщению
+                setTimeout(() => {
+                    successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 400);
+            }
+
+            // Запускаем сердечки ПРИ КАЖДОМ нажатии (и после первого, и после повторных)
+            launchHearts(40, 50);
+            setTimeout(() => launchHearts(30, 40), 1000);
+            setTimeout(() => launchHearts(20, 35), 2000);
+        });
+
+        // --- 5. Защита от вылета кнопки за пределы ---
         window.addEventListener('resize', function() {
-            if (noBtn.style.position === 'absolute') {
-                // Просто сбрасываем в относительное положение, чтобы не ломать вёрстку
-                noBtn.style.position = 'relative';
-                noBtn.style.left = 'auto';
-                noBtn.style.top = 'auto';
-                noBtn.style.transform = 'scale(1)';
+            if (noBtn.classList.contains('flying') && noBtn.style.display !== 'none') {
+                const btnW = noBtn.offsetWidth || 110;
+                const btnH = noBtn.offsetHeight || 60;
+                const padding = 15;
+
+                let left = parseFloat(noBtn.style.left) || 0;
+                let top = parseFloat(noBtn.style.top) || 0;
+
+                const maxX = window.innerWidth - btnW - padding;
+                const maxY = window.innerHeight - btnH - padding;
+
+                if (left > maxX) left = maxX;
+                if (top > maxY) top = maxY;
+                if (left < padding) left = padding;
+                if (top < padding) top = padding;
+
+                noBtn.style.left = left + 'px';
+                noBtn.style.top = top + 'px';
             }
         });
+
+        console.log('✅ Приложение загружено! Нажимай на "ДА" — будут сердечки!');
 
     })();
 </script>
