@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Приглашение 💖</title>
+    <style>
+        /* Общий фон */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #fce4ec, #f8bbd0);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation; /* Убираем задержку на тач-устройствах */
+        }
+
+        /* Контейнер-открытка */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            padding: 40px 30px;
+            border-radius: 60px 20px 60px 20px;
+            box-shadow: 0 20px 60px rgba(233, 30, 99, 0.3);
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: 0.3s;
+            position: relative;
+        }
+
+        h1 {
+            color: #880e4f;
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .sub-text {
+            color: #ad1457;
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .emoji-big {
+            font-size: 72px;
+            line-height: 1;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        /* Блок с кнопками */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 15px;
+            position: relative;
+            min-height: 80px;
+        }
+
+        /* Кнопка ДА */
+        .btn-yes {
+            background: #d81b60;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #880e4f;
+            transition: all 0.1s ease;
+            z-index: 10;
+            letter-spacing: 2px;
+            min-width: 100px;
+        }
+
+        .btn-yes:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 0 #880e4f;
+        }
+
+        /* Кнопка НЕТ — она будет "убегать" */
+        .btn-no {
+            background: #78909c;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #37474f;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            position: relative;
+            z-index: 10;
+            min-width: 100px;
+            letter-spacing: 2px;
+        }
+
+        /* Анимация для сердечек */
+        .heart {
+            position: fixed;
+            font-size: 40px;
+            pointer-events: none;
+            animation: floatUp 1.8s ease-out forwards;
+            z-index: 999;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-400px) scale(1.5) rotate(40deg);
+            }
+        }
+
+        /* Сообщение после согласия */
+        .hidden-message {
+            display: none;
+            margin-top: 20px;
+            font-size: 20px;
+            color: #880e4f;
+            background: #fff0f3;
+            padding: 20px;
+            border-radius: 30px;
+            border: 2px dashed #d81b60;
+            animation: pop 0.5s ease;
+        }
+
+        .hidden-message a {
+            color: #d81b60;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 2px solid #d81b60;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Адаптив для маленьких экранов */
+        @media (max-width: 480px) {
+            .card { padding: 25px 20px; }
+            .btn-yes, .btn-no { padding: 14px 20px; font-size: 18px; min-width: 80px; }
+            h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card" id="card">
+    <span class="emoji-big">🌸</span>
+    <h1>Привет, красотка!</h1>
+    <p class="sub-text">У меня к тебе один вопрос... 👇</p>
+
+    <div style="font-size: 28px; font-weight: 600; color: #4a148c; margin: 10px 0 20px;">
+        Ты пойдешь со мной <br>на свидание?
+    </div>
+
+    <div class="buttons" id="buttonContainer">
+        <button class="btn-yes" id="yesBtn">ДА 💖</button>
+        <button class="btn-no" id="noBtn">НЕТ 😤</button>
+    </div>
+
+    <!-- Скрытый блок, который появится после ДА -->
+    <div class="hidden-message" id="successMessage">
+        🥳 <strong>Я знал(а)!</strong> 🥳<br><br>
+        Ты — самая лучшая! ❤️<br>
+        <span style="font-size: 18px;">Тогда жду тебя <br> <strong>завтра в 19:00</strong> у ТЦ "Европа" 😉</span><br><br>
+        📍 <a href="https://maps.app.goo.gl/пример_ссылки" target="_blank">Открыть карту</a>
+        <!-- ↑ Замени ссылку на реальную, если нужно -->
+    </div>
+</div>
+
+<script>
+    (function() {
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const successMsg = document.getElementById('successMessage');
+        const card = document.getElementById('card');
+        const container = document.getElementById('buttonContainer');
+
+        // --- 1. Функция для "убегания" кнопки "НЕТ" ---
+        function moveNoButton() {
+            // Получаем размеры контейнера с кнопками
+            const containerRect = container.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            // Ширина/высота кнопки
+            const btnW = btnRect.width;
+            const btnH = btnRect.height;
+
+            // Доступное пространство внутри контейнера (с отступами, чтобы не вылезало)
+            const pad = 10;
+            const maxX = containerRect.width - btnW - pad;
+            const maxY = containerRect.height - btnH - pad;
+
+            // Генерируем случайные координаты (но не дальше чем позволяет контейнер)
+            let randomX = Math.random() * maxX;
+            let randomY = Math.random() * maxY;
+
+            // Доп. проверка: если кнопка уплыла слишком далеко, возвращаем в пределы
+            randomX = Math.min(Math.max(randomX, pad), maxX);
+            randomY = Math.min(Math.max(randomY, pad), maxY);
+
+            // Применяем transform (чтобы не ломать поток документа)
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.transform = 'scale(0.9)'; // чуть уменьшаем, чтобы было забавно
+            noBtn.style.zIndex = '20';
+        }
+
+        // --- 2. Обработчики для кнопки "НЕТ" ---
+        // Наведение мышкой (десктоп)
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        // Касание на телефоне (touch)
+        noBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // предотвращаем "прилипание"
+            moveNoButton();
+        });
+        // Если вдруг нажали (на случай если поймали) — всё равно убегаем
+        noBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // --- 3. Кнопка "ДА" — радость и сердечки ---
+        yesBtn.addEventListener('click', function(e) {
+            // Показываем скрытое сообщение
+            successMsg.style.display = 'block';
+
+            // Меняем текст на кнопке ДА (чтоб не нажимали повторно)
+            yesBtn.textContent = '💕 Я счастлив(а)!';
+            yesBtn.disabled = true;
+            yesBtn.style.opacity = '0.7';
+
+            // Прячем кнопку "НЕТ" (она больше не нужна)
+            noBtn.style.display = 'none';
+
+            // Запускаем фейерверк сердечек (20 штук)
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => createHeart(), i * 70);
+            }
+
+            // Прокручиваем к сообщению (если надо)
+            successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // --- 4. Функция создания сердечка ---
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.textContent = ['❤️', '💖', '💗', '💕', '♥️', '✨', '🌸'][Math.floor(Math.random() * 7)];
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = Math.random() * 40 + 10 + 'vh';
+            heart.style.fontSize = (Math.random() * 30 + 30) + 'px';
+            heart.style.animationDuration = (Math.random() * 1.5 + 1.2) + 's';
+            document.body.appendChild(heart);
+
+            // Удаляем сердечко после анимации
+            setTimeout(() => {
+                heart.remove();
+            }, 3000);
+        }
+
+        // --- 5. Защита от дурака: если вдруг кнопка НЕТ за пределами, возвращаем ---
+        // Проверяем каждые 2 секунды (на случай ресайза окна)
+        setInterval(() => {
+            if (noBtn.style.position === 'absolute') {
+                const containerRect = container.getBoundingClientRect();
+                const btnRect = noBtn.getBoundingClientRect();
+                // Если кнопка вылезла за пределы (например, при повороте экрана) — возвращаем
+                if (btnRect.left < containerRect.left || btnRect.top < containerRect.top ||
+                    btnRect.right > containerRect.right || btnRect.bottom > containerRect.bottom) {
+                    // Сбрасываем позицию в центр
+                    noBtn.style.position = 'relative';
+                    noBtn.style.left = 'auto';
+                    noBtn.style.top = 'auto';
+                    noBtn.style.transform = 'scale(1)';
+                }
+            }
+        }, 2000);
+
+        // Если пользователь ресайзит окно — тоже корректируем
+        window.addEventListener('resize', function() {
+            if (noBtn.style.position === 'absolute') {
+                // Просто сбрасываем в относительное положение, чтобы не ломать вёрстку
+                noBtn.style.position = 'relative';
+                noBtn.style.left = 'auto';
+                noBtn.style.top = 'auto';
+                noBtn.style.transform = 'scale(1)';
+            }
+        });
+
+    })();
+</script>
+</body>
+</html>
